@@ -108,9 +108,9 @@ class ServerAgent {
   
     await new Promise(r => setTimeout(r, 2000));
   
-    console.log('Groq response', response.data.choices[0].message.content)
+    console.log('Groq response', response.choices[0].message.content)
   
-    const responseObject = this.cleanAndProcess(response.data.choices[0].message.content);
+    const responseObject = this.cleanAndProcess(response.choices[0].message.content);
     if (responseObject) {
       return responseObject;
     }
