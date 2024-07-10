@@ -1,4 +1,5 @@
 import { Configuration, OpenAIApi } from "openai";
+import Groq from "groq-sdk";
 import extract from "extract-json-from-string";
 
 import env from "./env.json" assert { type: "json" };
@@ -8,6 +9,7 @@ const configuration = new Configuration({
 });
 
 const openai = new OpenAIApi(configuration);
+const groq = new Groq(configuration);
 
 class ServerAgent {
   constructor(id) {
@@ -58,7 +60,7 @@ class ServerAgent {
       The JSON response indicating the next move is.
       `
 
-      const completion = await this.callOpenAI(prompt, 0);
+      const completion = await this.callGroq(prompt, 0);
       return completion;
 
     } catch (error) {
@@ -89,7 +91,33 @@ class ServerAgent {
   
     return await this.callOpenAI(prompt, attempt + 1);
   }
+
+  async callGroq(prompt, attempt) {
+    if (attempt > 3) {
+      return null;
+    }
   
+    if (attempt > 0) {
+      prompt = "YOU MUST ONLY RESPOND WITH VALID JSON OBJECTS\N" + prompt;
+    }
+  
+    const response = await groq.chat.completions.create({
+      model: "llama3-8b-8192",
+      messages: [{ role: "user", content: prompt }],
+    });
+  
+    await new Promise(r => setTimeout(r, 2000));
+  
+    console.log('Groq response', response.data.choices[0].message.content)
+  
+    const responseObject = this.cleanAndProcess(response.data.choices[0].message.content);
+    if (responseObject) {
+      return responseObject;
+    }
+  
+    return await this.callGroq(prompt, attempt + 1);
+  }
+
   cleanAndProcess(text) {
     const extractedJson = extract(text)[0];
   
