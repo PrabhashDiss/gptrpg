@@ -4,12 +4,15 @@ import extract from "extract-json-from-string";
 
 import env from "./env.json" assert { type: "json" };
 
-const configuration = new Configuration({
+const openai_configuration = new Configuration({
   apiKey: env.OPENAI_API_KEY,
 });
+const groq_configuration = new Configuration({
+  apiKey: env.GROQ_API_KEY,
+});
 
-const openai = new OpenAIApi(configuration);
-const groq = new Groq(configuration);
+const openai = new OpenAIApi(openai_configuration);
+const groq = new Groq(groq_configuration);
 
 class ServerAgent {
   constructor(id) {
